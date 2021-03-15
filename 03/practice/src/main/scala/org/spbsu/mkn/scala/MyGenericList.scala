@@ -57,13 +57,9 @@ case class MyGenericLis[+T](override val head: T, override val tail: MyGenericLi
   override def map[U](f: T => U): MyGenericList[U] = foldRight(MyNil: MyGenericList[U])((int, t) => f(int) :: t)
 
   override def foldLeft[U](acm: U)(f: (U, T) => U): U = {
-    this match {
-      case MyGenericLis(head, tail) => tail.foldLeft(f(acm, head))(f)
-    }
+    tail.foldLeft(f(acm, head))(f)
   }
   override def foldRight[U](acm: U)(f: (T, U) => U): U = {
-    this match {
-      case MyGenericLis(head, tail) => f(head, tail.foldRight(acm)(f))
-    }
+    f(head, tail.foldRight(acm)(f))
   }
 }
