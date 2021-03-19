@@ -13,12 +13,17 @@ sealed trait MyGenericList[+T] {
 
   def foldLeft[U](acm: U)(f: (U, T) => U): U
   def foldRight[U](acm: U)(f: (T, U) => U): U
+
+  def toSeq: Seq[T] = MyGenericList.toSeq(this)
 }
 
 object MyGenericList {
   def undef: Nothing = throw new UnsupportedOperationException("operation is undefined")
 
   def fromSeq[T](seq: Seq[T]): MyGenericList[T] = seq.foldRight(MyNil: MyGenericList[T])((e, t) => MyGenericLis(e, t))
+  def toSeq[T](list: MyGenericList[T]): Seq[T] = list.foldRight(Seq[T]())((e, t) => e +: t)
+
+  def sort[T](list: MyGenericList[T])(implicit comparator: Ordering[T]): MyGenericList[T] = fromSeq(list.toSeq.sorted(comparator))
 
   //  def sum[T](intList: MyGenericList[T]): Double = intList.foldLeft(0)(_ + _)
 
@@ -63,3 +68,25 @@ case class MyGenericLis[+T](override val head: T, override val tail: MyGenericLi
     f(head, tail.foldRight(acm)(f))
   }
 }
+//implicit class ComparatorMyGenericList: Ordering[T]
+//implicit class ComparatorMyGenericList
+
+//class F{
+//  class A extends Ordering[A]{
+//    val xx:Int =0
+//    override def compare(x: A, y: A): Int = {
+////      xx.compare(x.xx, y.xx)
+//      2
+//    }
+//
+//  }
+//
+//  class B[T] extends Ordering[Int]{
+//    override def compare(x: Int, y: Int): Int = x-y
+//  }
+////  Seq(1,2,3).sorted(new (class Aa{}) )
+//Seq(1,2,3).sorted(new B[Boolean])
+//0 +: Seq(1, 2, 3)
+//
+//
+//}
