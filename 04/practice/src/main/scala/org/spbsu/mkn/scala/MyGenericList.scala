@@ -28,6 +28,25 @@ object MyGenericList {
   //  def sum[T](intList: MyGenericList[T]): Double = intList.foldLeft(0)(_ + _)
 
   def size[T](intList: MyGenericList[T]): Int = intList.foldLeft(0)((s, _) => s + 1)
+
+  implicit def compMyGenericList[T](implicit comparator: Ordering[T]): Ordering[MyGenericList[T]] =
+    (x, y) => {
+      def f: (MyGenericList[T], MyGenericList[T]) => Int = (x, y) => {
+        (x, y) match {
+          case (MyNil, MyNil) => 0
+          case (MyNil, _) => -1
+          case (_, MyNil) => 1
+          case (x, y) =>
+            val comp = comparator.compare(x.head, y.head)
+            if (comp == 0) {
+              f(x.tail, y.tail)
+            } else {
+              comp
+            }
+        }
+      }
+      f(x, y)
+    }
 }
 
 case object MyNil extends MyGenericList[Nothing] {
@@ -68,25 +87,26 @@ case class MyGenericLis[+T](override val head: T, override val tail: MyGenericLi
     f(head, tail.foldRight(acm)(f))
   }
 }
-//implicit class ComparatorMyGenericList: Ordering[T]
-//implicit class ComparatorMyGenericList
+
+
 
 //class F{
-//  class A extends Ordering[A]{
-//    val xx:Int =0
-//    override def compare(x: A, y: A): Int = {
-////      xx.compare(x.xx, y.xx)
-//      2
-//    }
+//  case class A(i:Int)
+//  case class B(i:Int)
+//  case class C(i:Int)
 //
+//  implicit def aToB(a:A): B = B(a.i)
+//  implicit def bToC[T](t: T)(implicit tToB: T => B): C = C(t.i)
+//
+//  val a=A(1)
+//  val c:C=a
+//}
+//
+//class F1{
+//  trait A{
+//    def i: Int
 //  }
-//
-//  class B[T] extends Ordering[Int]{
-//    override def compare(x: Int, y: Int): Int = x-y
+//  val a = new A {
+//    override def i: Int = ???
 //  }
-////  Seq(1,2,3).sorted(new (class Aa{}) )
-//Seq(1,2,3).sorted(new B[Boolean])
-//0 +: Seq(1, 2, 3)
-//
-//
 //}
