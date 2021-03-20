@@ -13,16 +13,40 @@ sealed trait MyGenericList[+T] {
 
   def foldLeft[U](acm: U)(f: (U, T) => U): U
   def foldRight[U](acm: U)(f: (T, U) => U): U
+
+  def toSeq: Seq[T] = MyGenericList.toSeq(this)
 }
 
 object MyGenericList {
   def undef: Nothing = throw new UnsupportedOperationException("operation is undefined")
 
   def fromSeq[T](seq: Seq[T]): MyGenericList[T] = seq.foldRight(MyNil: MyGenericList[T])((e, t) => MyGenericLis(e, t))
+  def toSeq[T](list: MyGenericList[T]): Seq[T] = list.foldRight(Seq[T]())((e, t) => e +: t)
+
+  def sort[T](list: MyGenericList[T])(implicit comparator: Ordering[T]): MyGenericList[T] = fromSeq(list.toSeq.sorted(comparator))
 
   //  def sum[T](intList: MyGenericList[T]): Double = intList.foldLeft(0)(_ + _)
 
   def size[T](intList: MyGenericList[T]): Int = intList.foldLeft(0)((s, _) => s + 1)
+
+  implicit def compMyGenericList[T](implicit comparator: Ordering[T]): Ordering[MyGenericList[T]] =
+    (x, y) => {
+      def f: (MyGenericList[T], MyGenericList[T]) => Int = (x, y) => {
+        (x, y) match {
+          case (MyNil, MyNil) => 0
+          case (MyNil, _) => -1
+          case (_, MyNil) => 1
+          case (x, y) =>
+            val comp = comparator.compare(x.head, y.head)
+            if (comp == 0) {
+              f(x.tail, y.tail)
+            } else {
+              comp
+            }
+        }
+      }
+      f(x, y)
+    }
 }
 
 case object MyNil extends MyGenericList[Nothing] {
@@ -63,3 +87,26 @@ case class MyGenericLis[+T](override val head: T, override val tail: MyGenericLi
     f(head, tail.foldRight(acm)(f))
   }
 }
+
+
+
+//class F{
+//  case class A(i:Int)
+//  case class B(i:Int)
+//  case class C(i:Int)
+//
+//  implicit def aToB(a:A): B = B(a.i)
+//  implicit def bToC[T](t: T)(implicit tToB: T => B): C = C(t.i)
+//
+//  val a=A(1)
+//  val c:C=a
+//}
+//
+//class F1{
+//  trait A{
+//    def i: Int
+//  }
+//  val a = new A {
+//    override def i: Int = ???
+//  }
+//}
