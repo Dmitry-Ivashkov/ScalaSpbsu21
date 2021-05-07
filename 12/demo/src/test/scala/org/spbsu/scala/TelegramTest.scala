@@ -1,30 +1,44 @@
 package org.spbsu.scala
 
-import org.scalatest.funsuite.AnyFunSuite
-import cats.instances.future._
-import cats.syntax.functor._
-import com.bot4s.telegram.api.RequestHandler
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.bot4s.telegram.api.declarative.Commands
-import com.bot4s.telegram.clients.{FutureSttpClient, ScalajHttpClient}
-import com.bot4s.telegram.future.{Polling, TelegramBot}
-import slogging.{LogLevel, LoggerConfig, PrintLoggerFactory}
-import com.bot4s.telegram.api.RequestHandler
-import com.bot4s.telegram.clients.FutureSttpClient
-import com.bot4s.telegram.future.TelegramBot
-import com.softwaremill.sttp.SttpBackend
-import com.softwaremill.sttp.okhttp.OkHttpFutureBackend
-
+import com.bot4s.telegram.cats.{Polling, TelegramBot}
+import org.scalatest.funsuite.AnyFunSuite
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import sttp.client3.{SttpBackend, UriContext, asFile, basicRequest}
+//import com.bot4s.telegram.future.{Polling, TelegramBot}
+//import com.bot4s.telegram.future.TelegramBot
 import java.io.FileInputStream
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 
 class TelegramTest extends AnyFunSuite {
 
-  val token: String = new String(new FileInputStream("TG_TOKEN").readAllBytes())
+  val token: String = new String("1799231103:AAHRXMReArGosUaxDmeUUYQb0alG2y9uTBs")
 
+  class MyTGBot(implicit val backend : SttpBackend[IO, Any]) extends TelegramBot[IO](token, backend)
+  with Polling[IO]
+  with Commands[IO] {
+    onCommand("/ping"){
+      implicit msg =>
+        reply("pong")
+          .map(println(_))
+    }
+    onCommand("/exit"){
+      implicit msg =>
+        reply("pong")
+          .map(println(_))
+    }
+     onMessage{implicit msg =>
+       msg.photo.map(_.map(_.fileUniqueId))
+       reply(msg.text.getOrElse("?")).void
+     }
+  }
 
   test("send TG message") {
-
+    val value = AsyncHttpClientCatsBackend[IO]().flatMap {implicit backend =>
+      val bot = new MyTGBot()
+      bot.run()
+    }.unsafeRunSync()
   }
 
 }

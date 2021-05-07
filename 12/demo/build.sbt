@@ -2,9 +2,11 @@ name := "web-demo"
 
 organization := "ru.spbsu"
 
+resolvers += Resolver.sonatypeRepo("snapshots")
+
 libraryDependencies ++= Seq(
-  "com.softwaremill.sttp.client3" %% "core" % "3.3.0",  // http client
-  "com.bot4s" %% "telegram-core" % "4.4.0-RC2",                // telegram api
+  "com.softwaremill.sttp.client3" %% "core" % "3.3.0",  // http client (качать с emkn)
+  "com.bot4s" %% "telegram-core" % "5.0.0-0e30d39a-SNAPSHOT",                // telegram api
   "org.typelevel" %% "cats-effect" % "3.1.0",
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.3.0", // for cats-effect 3.x
   "com.typesafe.slick" %% "slick" % "3.3.3",            // database api
